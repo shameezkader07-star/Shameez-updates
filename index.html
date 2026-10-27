@@ -218,6 +218,50 @@
 
         // Fetch Live News from CNBC-TV18 RSS Feed via RSS2JSON Proxy Pipeline
         async function fetchCNBCNews() {
+  const newsContainer = document.getElementById('newsFeed');
+  const cnbcRssUrl = encodeURIComponent('https://www.cnbctv18.com/common/rss/market.xml');
+  const proxyEndpoint = `https://api.allorigins.win/get?url=${cnbcRssUrl}`;
+
+  try {
+    const response = await fetch(proxyEndpoint);
+    if (!response.ok) throw new Error('Network response was not ok');
+    const data = await response.json();
+    
+    const parser = new DOMParser();
+    const xmlDoc = parser.parseFromString(data.contents, "text/xml");
+    const items = xmlDoc.querySelectorAll("item");
+
+    if (items.length === 0) throw new Error('No items found');
+
+    let html = '<div class="list-group list-group-flush">';
+    items.forEach((item, index) => {
+      if (index < 6) {
+        const title = item.querySelector("title")?.textContent || "Market Update";
+        const link = item.querySelector("link")?.textContent || "#";
+        const pubDate = item.querySelector("pubDate")?.textContent || "";
+
+        html += `
+          <a href="${link}" target="_blank" class="list-group-item list-group-item-action bg-transparent text-white border-secondary py-3">
+            <h6 class="mb-1 text-info">${title}</h6>
+            <small class="text-muted">${pubDate}</small>
+          </a>
+        `;
+      }
+    });
+    html += '</div>';
+    newsContainer.innerHTML = html;
+  } catch (error) {
+    newsContainer.innerHTML = `
+      <div class="alert alert-warning my-3" role="alert">
+        ⚠️ Direct feed unavailable right now.
+        <a href="https://www.cnbctv18.com/market/" target="_blank" class="btn btn-danger btn-sm mt-2 w-100">
+          Click here to open CNBC-TV18 Market Portal Directly
+        </a>
+      </div>
+    `;
+  }
+}
+
             const newsContainer = document.getElementById('news-feed');
             const spinner = document.getElementById('news-spinner');
             const lastUpdatedLabel = document.getElementById('last-updated');
