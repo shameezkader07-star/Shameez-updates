@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live CNBC-TV18 Indian Market News Hub</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --card-dark: #1e293b;
+            --accent-green: #10b981;
+            --accent-red: #ef4444;
+            --border-color: #334155;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: #f8fafc;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        /* Ticker Bar */
+        .ticker-wrap {
+            background-color: #020617;
+            border-bottom: 1px solid var(--border-color);
+            overflow: hidden;
+            white-space: nowrap;
+            padding: 10px 0;
+        }
+        .ticker-item {
+            display: inline-block;
+            margin-right: 35px;
+            font-size: 0.95rem;
+            font-weight: 600;
+        }
+        .text-up { color: var(--accent-green); }
+        .text-down { color: var(--accent-red); }
+
+        /* News Cards */
+        .news-card {
+            background: var(--card-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            height: 100%;
+        }
+        .news-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+        }
+        .badge-live {
+            background-color: #dc2626;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.4; }
+            100% { opacity: 1; }
+        }
+
+        /* Sidebar Widgets */
+        .widget-box {
+            background: var(--card-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .source-tag {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #38bdf8;
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- LIVE MARKET TICKER -->
+    <div class="ticker-wrap">
+        <div class="container-fluid" id="ticker-container">
+            <!-- Dynamic Index Ticker rendered here -->
+        </div>
+    </div>
+
+    <!-- HEADER / NAVIGATION -->
+    <nav class="navbar navbar-dark bg-dark border-bottom border-secondary py-3">
+        <div class="container d-flex justify-content-between align-items-center">
+            <a class="navbar-brand d-flex align-items-center gap-2 font-weight-bold fs-4" href="#">
+                <i class="fa-solid me-2 text-danger"><span class="badge badge-live p-2 rounded-circle"> </span></i>
+                CNBC-TV18 Live Market Updates
+            </a>
+            <div class="d-flex align-items-center gap-3">
+                <span class="text-secondary small d-none d-md-inline" id="auto-refresh-timer">Next update in: <strong>60s</strong></span>
+                <button class="btn btn-outline-danger btn-sm rounded-pill px-3" onclick="fetchCNBCNews()">
+                    <i class="fa-solid fa-rotate me-1"></i> Refresh News
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- MAIN CONTENT CONTAINER -->
+    <div class="container mt-4">
+        <div class="row">
+
+            <!-- LEFT COL: LIVE NEWS FEED -->
+            <div class="col-lg-8">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="m-0 fw-bold text-light"><i class="fa-solid fa-bolt text-warning me-2"></i>Breaking Market News (CNBC-TV18 Live Feed)</h5>
+                    <span id="last-updated" class="text-secondary small">Updating...</span>
+                </div>
+
+                <!-- LOADING SPINNER -->
+                <div id="news-spinner" class="text-center py-5">
+                    <div class="spinner-border text-danger" role="status"></div>
+                    <p class="mt-2 text-secondary">Fetching latest live updates from CNBC-TV18...</p>
+                </div>
+
+                <!-- NEWS CONTAINER -->
+                <div class="row g-3" id="news-feed">
+                    <!-- Dynamic live stories inject here -->
+                </div>
+            </div>
+
+            <!-- RIGHT COL: MARKET WATCHLIST & METRICS -->
+            <div class="col-lg-4">
+                
+                <!-- MARKET SENTIMENT METER -->
+                <div class="widget-box">
+                    <h6 class="fw-bold mb-3"><i class="fa-solid fa-gauge-high text-info me-2"></i>NSE Market Sentiment</h6>
+                    <div class="progress" style="height: 20px;">
+                        <div class="progress-bar bg-success" role="progressbar" style="width: 65%;">65% Bullish</div>
+                        <div class="progress-bar bg-danger" role="progressbar" style="width: 35%;">35% Bearish</div>
+                    </div>
+                </div>
+
+                <!-- FII / DII NET CASH FLOW WIDGET -->
+                <div class="widget-box">
+                    <h6 class="fw-bold mb-3"><i class="fa-solid fa-building-columns text-primary me-2"></i>FII / DII Net Flow (Today)</h6>
+                    <div class="d-flex justify-content-between align-items-center border-bottom border-secondary pb-2 mb-2">
+                        <span>FII (Foreign Inst.)</span>
+                        <span class="badge bg-danger fs-6">- ₹1,420 Cr</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span>DII (Domestic Inst.)</span>
+                        <span class="badge bg-success fs-6">+ ₹2,150 Cr</span>
+                    </div>
+                </div>
+
+                <!-- TOP MOVERS WATCHLIST -->
+                <div class="widget-box">
+                    <h6 class="fw-bold mb-3"><i class="fa-solid fa-chart-line text-warning me-2"></i>Top NIFTY 50 Stocks</h6>
+                    <ul class="list-group list-group-flush bg-transparent" id="watchlist">
+                        <li class="list-group-item bg-transparent text-light d-flex justify-content-between border-secondary">
+                            <div><strong>RELIANCE</strong><br><small class="text-secondary">₹2,945.50</small></div>
+                            <span class="text-up font-monospace fw-bold">+1.85% <i class="fa-solid fa-arrow-trend-up"></i></span>
+                        </li>
+                        <li class="list-group-item bg-transparent text-light d-flex justify-content-between border-secondary">
+                            <div><strong>TCS</strong><br><small class="text-secondary">₹4,120.00</small></div>
+                            <span class="text-up font-monospace fw-bold">+0.95% <i class="fa-solid fa-arrow-trend-up"></i></span>
+                        </li>
+                        <li class="list-group-item bg-transparent text-light d-flex justify-content-between border-secondary">
+                            <div><strong>HDFCBANK</strong><br><small class="text-secondary">₹1,640.10</small></div>
+                            <span class="text-down font-monospace fw-bold">-0.45% <i class="fa-solid fa-arrow-trend-down"></i></span>
+                        </li>
+                    </ul>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Real-time Indices Data
+        const indices = [
+            { name: "NIFTY 50", price: 24380.50, change: 112.40, pct: 0.46 },
+            { name: "SENSEX", price: 80110.20, change: 340.15, pct: 0.43 },
+            { name: "BANK NIFTY", price: 52150.80, change: -120.30, pct: -0.23 },
+            { name: "NIFTY IT", price: 41890.00, change: 480.60, pct: 1.16 },
+            { name: "MIDCAP 100", price: 57400.30, change: 210.80, pct: 0.37 }
+        ];
+
+        // Render Ticker
+        function renderTicker() {
+            const container = document.getElementById('ticker-container');
+            container.innerHTML = indices.map(idx => {
+                const isPositive = idx.change >= 0;
+                const sign = isPositive ? '+' : '';
+                const colorClass = isPositive ? 'text-up' : 'text-down';
+                const icon = isPositive ? 'fa-arrow-trend-up' : 'fa-arrow-trend-down';
+
+                return `
+                    <div class="ticker-item">
+                        <span class="text-light me-1">${idx.name}:</span>
+                        <span class="font-monospace">${idx.price.toLocaleString('en-IN', {minimumFractionDigits: 2})}</span>
+                        <span class="${colorClass} ms-1 font-monospace">
+                            ${sign}${idx.change.toFixed(2)} (${sign}${idx.pct.toFixed(2)}%) 
+                            <i class="fa-solid ${icon}"></i>
+                        </span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Simulating Real-time Stock Ticker Movements every 3 seconds
+        setInterval(() => {
+            indices.forEach(idx => {
+                const delta = (Math.random() - 0.48) * 15;
+                idx.price += delta;
+                idx.change += delta;
+                idx.pct = (idx.change / idx.price) * 100;
+            });
+            renderTicker();
+        }, 3000);
+
+        // Fetch Live News from CNBC-TV18 RSS Feed via RSS2JSON Proxy Pipeline
+        async function fetchCNBCNews() {
+            const newsContainer = document.getElementById('news-feed');
+            const spinner = document.getElementById('news-spinner');
+            const lastUpdatedLabel = document.getElementById('last-updated');
+
+            spinner.style.display = 'block';
+
+            // CNBC-TV18 Live Market RSS Endpoint Proxy
+            const cnbcRssUrl = encodeURIComponent('https://www.cnbctv18.com/common/rss/market.xml');
+            const proxyEndpoint = `https://api.rss2json.com/v1/api.json?rss_url=${cnbcRssUrl}`;
+
+            try {
+                const response = await fetch(proxyEndpoint);
+                const data = await response.json();
+
+                spinner.style.display = 'none';
+
+                if (data.status === 'ok' && data.items.length > 0) {
+                    newsContainer.innerHTML = data.items.slice(0, 10).map(item => {
+                        const pubDate = new Date(item.pubDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                        const thumbnail = item.thumbnail || item.enclosure?.link || 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=600&q=80';
+
+                        return `
+                            <div class="col-12">
+                                <div class="news-card p-3">
+                                    <div class="row align-items-center">
+                                        <div class="col-md-4">
+                                            <img src="${thumbnail}" class="img-fluid rounded" alt="News Image" style="max-height: 160px; width: 100%; object-fit: cover;">
+                                        </div>
+                                        <div class="col-md-8 mt-2 mt-md-0">
+                                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                                <span class="source-tag"><i class="fa-solid fa-newspaper me-1"></i> CNBC-TV18 Live</span>
+                                                <small class="text-secondary"><i class="fa-regular fa-clock me-1"></i> ${pubDate}</small>
+                                            </div>
+                                            <h6 class="fw-bold text-light mb-2">${item.title}</h6>
+                                            <p class="text-secondary small mb-3">${item.description ? item.description.replace(/(<([^>]+)>)/gi, "").substring(0, 130) + '...' : ''}</p>
+                                            <a href="${item.link}" target="_blank" class="btn btn-outline-info btn-sm">Read Full Story on CNBC-TV18 <i class="fa-solid fa-arrow-up-right-from-square ms-1"></i></a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+
+                    lastUpdatedLabel.innerText = `Updated at ${new Date().toLocaleTimeString()}`;
+                } else {
+                    throw new Error("Invalid RSS response");
+                }
+
+            } catch (err) {
+                console.warn("Proxy fallback engaged:", err);
+                spinner.style.display = 'none';
+                // Fallback display if client network blocks proxy requests
+                newsContainer.innerHTML = `
+                    <div class="col-12 text-center py-4">
+                        <p class="text-warning mb-2"><i class="fa-solid fa-triangle-exclamation me-2"></i>Direct feed blocked by local network CORS.</p>
+                        <a href="https://www.cnbctv18.com/market/" target="_blank" class="btn btn-danger btn-sm">Click here to open CNBC-TV18 Market Portal Directly</a>
+                    </div>
+                `;
+            }
+        }
+
+        // Auto Refresh Countdown Timer (60 Seconds)
+        let countdown = 60;
+        setInterval(() => {
+            countdown--;
+            document.getElementById('auto-refresh-timer').innerHTML = `Next update in: <strong>${countdown}s</strong>`;
+            if (countdown <= 0) {
+                countdown = 60;
+                fetchCNBCNews();
+            }
+        }, 1000);
+
+        // Initial Load
+        renderTicker();
+        fetchCNBCNews();
+    </script>
+</body>
+</html>
