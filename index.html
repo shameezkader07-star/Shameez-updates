@@ -220,7 +220,8 @@
         async function fetchCNBCNews() {
   const newsContainer = document.getElementById('newsFeed');
   const cnbcRssUrl = encodeURIComponent('https://www.cnbctv18.com/common/rss/market.xml');
-  const proxyEndpoint = `https://api.allorigins.win/get?url=${cnbcRssUrl}`;
+ const proxyEndpoint = `https://api.codetabs.com/v1/proxy?quest=${cnbcRssUrl}`;
+
 
   try {
     const response = await fetch(proxyEndpoint);
